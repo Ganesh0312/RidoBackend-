@@ -4,6 +4,7 @@ require("dotenv").config();
 const multer = require("multer");
 const db = require("../configs/database");
 const userQuery = require("../models/userQueries");
+const userQueries = require("../models/userQueries");
 
 // exports.register = async (req, res) => {
 //   const { username, email, password, phone_number, profile_picture } = req.body;
@@ -110,7 +111,7 @@ exports.login = async (req, res) => {
   try {
     const [user] = await db.execute(userQuery.findUserByEmail, [email]);
     if (!user) {
-      return res.status(400).json({ error: "Invalid Email or password" });
+      return res.status(400).json({ error: "Invalid Email " });
     }
 
     const isPassword = await bcrypt.compare(password, user.password);
@@ -134,5 +135,35 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error("Error During Login", error.message);
     res.status(400).json({ error: "Login Failed due to server error" });
+  }
+};
+
+exports.getUserByEmail = async (req, res) => {
+  const { useremail } = req.params;
+
+  try {
+    if (!useremail) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    const user = await db.execute(userQuery.findUserByEmail, [useremail]);
+
+    if (!user || user.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Exclude sensitive data like password from the response
+    const { user_id, username, email, phone_number, profile_picture } = user[0];
+    const userWithoutPassword = {
+      user_id,
+      username,
+      email,
+      phone_number,
+      profile_picture,
+    };
+
+    res.status(200).json(userWithoutPassword);
+  } catch (error) {
+    console.error("Error while getting user:", error);
+    res.status(500).json({ error: "Error while retrieving user" });
   }
 };

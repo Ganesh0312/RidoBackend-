@@ -51,15 +51,16 @@ exports.getAllBikes = async (req, res) => {
   }
 };
 
-// Get bike by ID
 exports.getBikeById = async (req, res) => {
   const { bikeId } = req.params;
 
   try {
-    const bike = await db.execute(bikesQueries.getBikeById, bikeId);
-    if (!bike) {
+    const [bike] = await db.execute(bikesQueries.getBikeById, [bikeId]); // Use array for parameter
+    if (!bike || bike.length === 0) {
       return res.status(404).json({ error: "Bike not found" });
     }
+
+    // Return the first bike object
     res.status(200).json(bike);
   } catch (error) {
     console.error("Error retrieving bike:", error.message);
