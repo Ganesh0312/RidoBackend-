@@ -158,3 +158,116 @@ exports.updateRide = async (req, res) => {
     res.status(500).json({ error: "Failed to update ride" });
   }
 };
+
+// API to start a ride
+exports.startRide = async (req, res) => {
+  const {
+    user_id,
+    bike_id,
+    ride_date,
+    day_of_week,
+    start_time,
+    start_km,
+    start_avg_mileage,
+    start_dte,
+    start_add,
+  } = req.body;
+
+  // Validate required input for starting a ride
+  if (
+    !user_id ||
+    !bike_id ||
+    !ride_date ||
+    !start_time ||
+    !start_km ||
+    !start_avg_mileage ||
+    !start_dte ||
+    !start_add
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Missing required fields for starting a ride" });
+  }
+
+  try {
+    const rideId = await db.execute(ridesQueries.startRide, [
+      user_id,
+      bike_id,
+      ride_date,
+      day_of_week,
+      start_time,
+      start_km,
+      start_avg_mileage,
+      start_dte,
+      start_add,
+    ]);
+    res.status(201).json({ message: "Ride started successfully", rideId });
+  } catch (error) {
+    console.error("Error starting ride:", error.message);
+    res.status(500).json({ error: "Failed to start ride" });
+  }
+};
+
+// API to end a ride
+exports.endRide = async (req, res) => {
+  const { rideId } = req.params;
+  const {
+    end_time,
+    end_km,
+    end_avg_mileage,
+    end_dte,
+    end_add,
+    fuel_used,
+    balance_petrol,
+    dte_status,
+    via_stops,
+    commutation_type,
+    comm_time,
+    drive_mode,
+    drive_type,
+    remarks,
+  } = req.body;
+
+  // Validate required input for ending a ride
+  if (
+    !rideId ||
+    !end_time ||
+    !end_km ||
+    !end_avg_mileage ||
+    !end_dte ||
+    !end_add
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Missing required fields for ending a ride" });
+  }
+
+  try {
+    const result = await db.execute(ridesQueries.endRide, [
+      end_time,
+      end_km,
+      end_avg_mileage,
+      end_dte,
+      end_add,
+      fuel_used,
+      balance_petrol,
+      dte_status,
+      via_stops,
+      commutation_type,
+      comm_time,
+      drive_mode,
+      drive_type,
+      remarks,
+      rideId,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Ride not found or already ended" });
+    }
+
+    res.status(200).json({ message: "Ride ended successfully" });
+  } catch (error) {
+    console.error("Error ending ride:", error.message);
+    res.status(500).json({ error: "Failed to end ride" });
+  }
+};

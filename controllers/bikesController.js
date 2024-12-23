@@ -55,7 +55,6 @@ exports.getAllBikes = async (req, res) => {
 
 exports.getBikeById = async (req, res) => {
   const { bikeId } = req.params;
-
   try {
     const [bike] = await db.execute(bikesQueries.getBikeById, [bikeId]); // Use array for parameter
     if (!bike || bike.length === 0) {
